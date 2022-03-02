@@ -1,4 +1,5 @@
 mod operations {
+
     pub fn adder(a: u32, b: u32) -> u32 {
         let (mut a, mut b) = (a, b);
 
@@ -49,36 +50,93 @@ mod operations {
 
     fn _logical_evidence(a: bool, b: bool) -> bool { a == b }
 
-    // Literal is either true or false
+    // Operand is either true or false
     // Simple operations take 1 argument
     // Regular operations take 2
+
     enum Token {
-        Literal(bool),
-        Operation(OpType),
-        SimpleOperation(SimpleOpType)
+        Operand(bool),
+        Operation(SimpleOpType),
+        Operation2(OpType)
     }
 
-    fn _lex_formula(formula: &str) -> Vec<Token> {
-        let tokens: Vec<Token> = formula.chars().map(
+    fn _lex_formula(formula: &str) -> Result<Vec<Token>, String> {
+        formula.chars().map(
           |x| match x {
-              '1' => Token::Literal(true),
-              '0' => Token::Literal(false),
-              '!' => Token::SimpleOperation(_negation),
-              '&' => Token::Operation(_conjunction),
-              '|' => Token::Operation(_disjunction),
-              '^' => Token::Operation(_exclusive_disjunction),
-              '>' => Token::Operation(_material_condition),
-              '=' => Token::Operation(_logical_evidence),
-              _ => panic!()
+              '1' => Ok(Token::Operand(true)),
+              '0' => Ok(Token::Operand(false)),
+              '!' => Ok(Token::Operation(_negation)),
+              '&' => Ok(Token::Operation2(_conjunction)),
+              '|' => Ok(Token::Operation2(_disjunction)),
+              '^' => Ok(Token::Operation2(_exclusive_disjunction)),
+              '>' => Ok(Token::Operation2(_material_condition)),
+              '=' => Ok(Token::Operation2(_logical_evidence)),
+              unknown => { return Err(format!("Unexpected Symbol {}", unknown)); }
           }
-        ).collect();
-
-        tokens
+        ).collect()
     }
 
-    pub fn eval_formula(formula: &str) -> bool {
-        let tokens = _lex_formula(formula);
-        true
+    // fn _find_operation(tokens: &Vec<Token>) -> Option<&Token> {
+    //     tokens.iter().find(|x| match x {
+    //         Token::Operation(x) => true,
+    //         Token::SimpleOperation(op) => true,
+    //         _ => false
+    //     })
+    // }
+
+    fn _parse_operands(formula: &Vec<Token>) -> (Vec<bool>, usize) {
+        let mut operands= Vec::new();
+
+        let mut idx = 0;
+        for i in 0..formula.len() {
+            match &formula[i] {
+                Token::Operand(x) => operands.push(x.clone()),
+                Token => {
+                    idx = i;
+                    break
+                }
+            };
+        }
+        (operands, idx)
+    }
+
+    fn _parse_operations(formula: Vec<Token>, idx: usize) -> Result<Vec<Token>, String> {
+        let mut operations = Vec::new();
+
+
+        for i in formula.into_iter() {
+            match token {
+                Token::Operation(x) => operations.push(Token::Operation(x)),
+                Token::Operation2(x) => operations.push(Token::Operation2(x)),
+                Token::Operand(x) => {
+                    return Err(format!("Expected operation, found operand {}", x));
+                }
+            }
+        }
+
+        operations
+    }
+
+    fn _parse_formula(formula: &Vec<Token>) -> Result<bool, String> {
+        let (operands, idx) = _parse_operands(formula);
+
+        if idx == 0 {
+            return Err(String::from("Expected operand"));
+        }
+
+        // let operators: Vec<Token>;
+        // for i in idx..formula.len() {
+        //     let operand = match formula[i] {
+        //         Token::Operation2(x) => operators.push(Token::Operation2(x)),
+        //         Token::Operation(x) => operators.push(Token::Operation(x),
+        //     };
+        // }
+        Ok(true)
+    }
+
+    pub fn eval_formula(formula: &str) {
+        // let tokens = _lex_formula(formula);
+        // let a = tokens;
     }
 
     fn _half_adder(a: u32, b: u32) -> (u32, u32) {
@@ -149,6 +207,6 @@ mod tests {
 
     #[test]
     fn eval_formula_tests() {
-        eval_formula("aaaa");
+        eval_formula("1010|&=");
     }
 }
