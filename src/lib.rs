@@ -1,6 +1,4 @@
 mod operations {
-    use std::rc::Rc;
-
     pub fn adder(a: u32, b: u32) -> u32 {
         let (mut a, mut b) = (a, b);
 
@@ -59,32 +57,18 @@ mod operations {
     // Operand is either true or false
     // Simple operations take 1 argument
     // Regular operations take 2
-    #[derive(Copy, Clone)]
     enum Operation {
         One(SimpleOpType),
-        Two(OpType),
+        Two(OpType)
     }
 
     struct LexedExpr {
         operands: Vec<bool>,
-        operations: Vec<Operation>,
-    }
-
-    fn _lex(formula: &str) -> Result<LexedExpr, String> {
-        let (operands, operation_idx) = _lex_operands(formula);
-
-        let operations = _lex_operations(formula, operation_idx);
-        match operations {
-            Ok(x) => Ok(LexedExpr {
-                operands,
-                operations: x,
-            }),
-            Err(e) => Err(e)
-        }
+        operations: Vec<Operation>
     }
 
     fn _lex_operands(formula: &str) -> (Vec<bool>, usize) {
-        let mut operation_idx = 0;
+        let mut operation_idx= 0;
         let mut operands = Vec::new();
         for i in 0..formula.len() {
             match formula.chars().nth(i).unwrap() {
@@ -96,7 +80,7 @@ mod operations {
                 }
                 _ => {
                     operation_idx = i;
-                    break;
+                    break ;
                 }
             }
         }
@@ -105,14 +89,14 @@ mod operations {
 
     fn _lex_operations(formula: &str, operation_idx: usize) -> Result<Vec<Operation>, String> {
         let mut count = 0;
-        let slice = &formula[operation_idx..formula.len()];
+        let slice= &formula[operation_idx..formula.len()];
         let mut operations = Vec::with_capacity(formula.len() - operation_idx);
         for token in slice.chars() {
             match token {
                 '!' => {
                     count += 1;
                     operations.push(Operation::One(_negation));
-                }
+                },
                 x => {
                     count += 2;
                     match x {
@@ -121,63 +105,26 @@ mod operations {
                         '^' => { operations.push(Operation::Two(_exclusive_disjunction)); }
                         '>' => { operations.push(Operation::Two(_material_condition)); }
                         '=' => { operations.push(Operation::Two(_logical_evidence)); }
-                        x => { return Err(format!("error: expected operation, got {}", x)); }
+                        x => { return Err(format!("Expected operation, got {}", x)); }
                     }
                 }
             }
         }
+        return Ok(operations)
+    }
 
-        if count != operation_idx {
-            Err(format!("error: operators imply {} operands, got {}", count, operation_idx))
-        } else {
-            return Ok(operations);
+    fn _lex(formula: &str) -> Result<LexedExpr, String> {
+        let (operands, operation_idx) = _lex_operands(formula);
+
+        let operations = _lex_operations(formula, operation_idx);
+        match operations {
+            Ok(x) => Ok(LexedExpr{
+                operands,
+                operations: x
+            }),
+            Err(e) => Err(e)
         }
     }
-
-    union Token {
-        operation: Operation,
-        literal: bool,
-    }
-
-    struct Node<'a> {
-        value: Rc<Token>,
-        left: Option<&'a Node<'a>>,
-        right: Option<&'a Node<'a>>,
-    }
-
-    impl<'a> Node<'a> {
-        pub fn from(token: Token, left: Option<&'a Node<'a>>, right: Option<&'a Node<'a>>) -> Node<'a> {
-            Node {
-                value: Rc::from(token),
-                left,
-                right
-            }
-        }
-
-        pub fn execute(&self) -> bool {
-            match &*self.value {
-                Token { operation: operator } => {
-                    match operator {
-                        Operation::One(operation) => operation(left.execute()),
-                        Operation::Two(operation) => operation(left.execute, right.execute())
-                    }
-                }
-                Token { literal } => literal.clone()
-            }
-        }
-    }
-
-    struct Ast<'a> {
-        root: Rc<Node<'a>>
-    }
-
-    impl<'a> Ast<'a> {
-        pub fn construct(state: &LexedExpr) -> Self {
-            let (operands, operators) = (&state.operands, &state.operations);
-
-            let root = Node::from()
-        }
-    // }
 
     fn _half_adder(a: u32, b: u32) -> (u32, u32) {
         (a ^ b, a & b)
